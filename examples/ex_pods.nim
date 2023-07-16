@@ -2,7 +2,9 @@
   POD (Pack of Data) is the engine Intermediate Data Format like JSON
 ]#
 import std/strutils
+import std/strformat
 import std/tables
+import std/os
 import px_nim_pods
 
 
@@ -30,26 +32,27 @@ type UnitObj = object
 
 
 # Doesn't know by default how to save enum
-proc toPodHook*(pod: var Pod, val: enum) =
-  toPodHook(pod, $val)
+proc toPodHook*(api: PodsAPI, pod: var Pod, val: enum) =
+  api.toPodHook(pod, $val)
 
 
-proc fromPodHook*(pod: var Pod, result: var UnitKind) =
+proc fromPodHook*(api: PodsAPI, pod: var Pod, result: var UnitKind) =
   result = parseEnum[UnitKind](pod.vstring)
 
 
 # Doesn't know by default how to save Table[int,string]
-proc toPodHook*(pod: var Pod, val: Table[int,string]) =
+proc toPodHook*(api: PodsAPI, pod: var Pod, val: Table[int,string]) =
   var t = initTable[string,string]()
   for k,v in val.pairs:
     t[intToStr(k)] = v
-  toPodHook(pod, t)
+  api.toPodHook(pod, t)
 
 
-proc fromPodHook*(pod: var Pod, result: var Table[int,string]) =
+proc fromPodHook*(api: PodsAPI, pod: var Pod, result: var Table[int,string]) =
   var t = pod.fields
   for k,pod in t.pairs:
     result[k.parseInt] = pod.vstring
+
 
 var table = initTable[int,string]()
 table[1]  = "one"
@@ -68,16 +71,21 @@ pod["Alain"]    = pods.toPod(unit1)
 pod["Cuthbert"] = pods.toPod(unit2)
 pod["Roland"]   = pods.toPod(unit3)
 
-pods.toPodFile("dense.pods",   pod, PodStyle.Dense)
-pods.toPodFile("compact.pods", pod, PodStyle.Compact)
-pods.toPodFile("sparse.pods",  pod, PodStyle.Sparse)
+let path = &"{os.getAppDir()}"
+let densePath = &"{path}/dense.pods"
+let sparsePath = &"{path}/sparse.pods"
+let compactPath = &"{path}/compact.pods"
+pods.toPodFile(densePath,   pod, PodStyle.Dense)
+pods.toPodFile(compactPath, pod, PodStyle.Compact)
+pods.toPodFile(sparsePath,  pod, PodStyle.Sparse)
 # Compact: save pod to file without spaces in one line.
 # Dense:   save pod to file in a verbose tree format. Usually used for configs.
 # Sparse:  save pod to file in a json like tree format. Sparse also enables pretty formatting for variables. In future this will be optional.
-var podLoaded   = pods.fromPodFile("dense.pods")
+var podLoaded   = pods.fromPodFile(densePath)
 var unit1Loaded = pods.fromPod(podLoaded["Alain"], UnitObj)
 var unit2Loaded = pods.fromPod(podLoaded["Cuthbert"], UnitObj)
 var unit3Loaded = pods.fromPod(podLoaded["Roland"], UnitObj)
+
 
 echo unit1Loaded
 echo unit2Loaded

@@ -14,7 +14,7 @@ var ex = "ex"
 var debug = "debug"
 
 proc run(name, releaseMode="danger") =
-  exec "nim cpp --mm:orc -d:stacktrace:off -d:useMalloc -d:" & releaseMode & " -o=bin/examples/ -r examples/" & name & ".nim"
+  exec "nim cpp --mm:orc  -d:" & releaseMode & " -o=bin/ -r examples/" & name & ".nim"
 
 task ex_pods, ex:
   run "ex_pods"

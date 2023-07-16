@@ -32,21 +32,26 @@ proc toPodStringDenseHook(p: var PodWriter, pod: var Pod)
 
 type API_Obj  = object
 type PodsAPI* = distinct API_Obj
-type PodsPrivateAPI* = distinct API_Obj
-var api_o = API_Obj()
-var pods*        = PodsAPI(api_o)
-var pods_private = PodsPrivateAPI(api_o)
-var pods_io  = PodsIO()
+
+
+using api: PodsAPI
+
+var
+  api_o   = API_Obj()
+  pods*   = PodsAPI(api_o)
+  pods_io = PodsIO()
+
+
 pods_io.style = PodStyle.Compact
 
 
-using public: PodsAPI
-proc private*(public): PodsPrivateAPI =
-  pods_private
+
+
+
 #------------------------------------------------------------------------------------------
 # @api pod utils
 #------------------------------------------------------------------------------------------
-proc getIO*(public;): PodsIO =
+proc getIO*(api;): PodsIO =
   pods_io
 
 
@@ -63,14 +68,6 @@ proc numFields[T](x: var T): int =
 #------------------------------------------------------------------------------------------
 # @api pod debug
 #------------------------------------------------------------------------------------------
-template error*(p: var PodReader, message: string) =
-  raise newException(PodError, message)
-
-
-template error*(p: var PodWriter, message: string) =
-  raise newException(PodError, message)
-
-
 proc podGetErrorMessage*(errorKind: PodErrorKind, args: varargs[string]): string =
   const ansi_black_bold = "\e[1;29m"
   const ansi_blue_bold  = "\e[1;34m"
@@ -168,6 +165,7 @@ proc addIdentDepth(p: var PodWriter) =
   for i in 0..<p.objDepth:
     p.add(' ')
     p.add(' ')
+
 
 # 🔍 source: https://github.com/treeform/jsony/blob/master/src/jsony.nim -> dumpNumberFast
 # Credits to Treeform for fast way of parsing ints.
@@ -285,7 +283,7 @@ proc skipSymbol*(p: var PodReader, symbols: set[char]) =
     p.skip()
     return
   else:
-    error(p,"Invalid symbol.")
+    fatal(debug_tag, "Invalid symbol.")
 
 
 proc skipSymbol*(p: var PodReader, symbol: char) =
@@ -294,7 +292,7 @@ proc skipSymbol*(p: var PodReader, symbol: char) =
     p.skip()
     return
   else:
-    error(p,"Invalid symbol.")
+    fatal(debug_tag, "Invalid symbol.")
 
 
 proc parseDigit*(p: var PodReader): int =
@@ -318,7 +316,7 @@ proc parseDigit*(p: var PodReader): int =
         of StringDelimeters:
           break
         else:
-          error(p,"Invalid value")
+          fatal(debug_tag, "Invalid value")
   case p.peek():
     of '-':
       p.skip()
@@ -327,7 +325,7 @@ proc parseDigit*(p: var PodReader): int =
     of digits:
       parseNumber()
     else:
-      error(p,"Invalid value")
+      fatal(debug_tag, "Invalid value")
 
 
 proc parseTokenString*(p: var PodReader) =
@@ -515,11 +513,6 @@ proc initPodObject*(flags: varargs[int]): Pod =
   setFlags(result, flags)
 
 
-# proc initPodTable*(flags: varargs[int]): Pod =
-#   result = Pod(kind: PTable)
-#   setFlags(result, flags)
-
-
 #---------------------------------------------------------------------------------------------
 # @api pod object getters
 #---------------------------------------------------------------------------------------------
@@ -664,159 +657,159 @@ proc checkFlag*(self: var Pod, flag: int): bool =
 #--------------------------------------------------------------------------------------------
 # @api pod object from pod
 #---------------------------------------------------------------------------------------------
-proc fromPodHook*[T: bool](pod: var Pod, result: var T)
-proc fromPodHook*[T: string](pod: var Pod, result: var T)
-proc fromPodHook*[T: SomeFloat](pod: var Pod, result: var T)
-proc fromPodHook*[T: SomeInteger](pod: var Pod, result: var T)
-proc fromPodHook*[T: object](pod: var Pod, result: var T)
-proc fromPodHook*[T: tuple](pod: var Pod, result: var T)
-proc fromPodHook*[T](pod: var Pod, obj: var seq[T])
-proc fromPodHook*[T](pod: var Pod, obj: var openArray[T])
-proc fromPodHook*[K,V](pod: var Pod, obj: var Table[K,V])
-proc fromPodHook*[K,V](pod: var Pod, obj: var OrderedTable[K,V])
+proc fromPodHook*[T: bool](api; pod: var Pod, result: var T)
+proc fromPodHook*[T: string](api; pod: var Pod, result: var T)
+proc fromPodHook*[T: SomeFloat](api; pod: var Pod, result: var T)
+proc fromPodHook*[T: SomeInteger](api; pod: var Pod, result: var T)
+proc fromPodHook*[T: object](api; pod: var Pod, result: var T)
+proc fromPodHook*[T: tuple](api; pod: var Pod, result: var T)
+proc fromPodHook*[T](api; pod: var Pod, obj: var seq[T])
+proc fromPodHook*[T](api; pod: var Pod, obj: var openArray[T])
+proc fromPodHook*[K,V](api; pod: var Pod, obj: var Table[K,V])
+proc fromPodHook*[K,V](api; pod: var Pod, obj: var OrderedTable[K,V])
 
 
-proc fromPodHook*[K,V](pod: var Pod, obj: var OrderedTable[K,V]) =
+proc fromPodHook*[K,V](api; pod: var Pod, obj: var OrderedTable[K,V]) =
   for k, v in pod.fields.mpairs:
     var pitem: V
-    fromPodHook(v, pitem)
+    pods.fromPodHook(v, pitem)
     obj[k] = pitem
 
 
-proc fromPodHook*[K,V](pod: var Pod, obj: var Table[K,V]) =
+proc fromPodHook*[K,V](api; pod: var Pod, obj: var Table[K,V]) =
   for k, v in pod.fields.mpairs:
     var pitem: V
-    fromPodHook(v, pitem)
+    pods.fromPodHook(v, pitem)
     obj[k] = pitem
 
 
-proc fromPodHook*[T](pod: var Pod, obj: var openArray[T]) =
+proc fromPodHook*[T](api; pod: var Pod, obj: var openArray[T]) =
   for index, item in pod.list.mpairs:
     var pitem: T
-    fromPodHook(item, pitem)
+    pods.fromPodHook(item, pitem)
     obj[index] = pitem
 
 
-proc fromPodHook*[T](pod: var Pod, obj: var seq[T]) =
+proc fromPodHook*[T](api; pod: var Pod, obj: var seq[T]) =
   for item in pod.list.mitems:
     var pitem: T
-    fromPodHook(item, pitem)
+    pods.fromPodHook(item, pitem)
     obj.add(pitem)
 
 
-proc fromPodHook*[T: bool](pod: var Pod, result: var T) =
+proc fromPodHook*[T: bool](api; pod: var Pod, result: var T) =
   result = pod.vbool
 
 
-proc fromPodHook*[T: string](pod: var Pod, result: var T) =
+proc fromPodHook*[T: string](api; pod: var Pod, result: var T) =
   result = pod.vstring
 
 
-proc fromPodHook*[T: SomeFloat](pod: var Pod, result: var T) =
+proc fromPodHook*[T: SomeFloat](api; pod: var Pod, result: var T) =
   if pod.kind == PInt:
     result = (typeof(result))pod.vint
   else:
     result = pod.vfloat
 
 
-proc fromPodHook*[T: SomeInteger](pod: var Pod, result: var T) =
+proc fromPodHook*[T: SomeInteger](api; pod: var Pod, result: var T) =
   result = (typeof(result))pod.vint
 
 
-proc fromPodHook*[T: object](pod: var Pod, result: var T) =
+proc fromPodHook*[T: object](api; pod: var Pod, result: var T) =
   for fkey, fval in result.fieldPairs:
     if pod.hasKey(fkey):
-      fromPodHook(pod[fkey], fval)
+      pods.fromPodHook(pod[fkey], fval)
 
 
-proc fromPodHook*[T: tuple](pod: var Pod, result: var T) =
+proc fromPodHook*[T: tuple](api; pod: var Pod, result: var T) =
   if T.isNamedTuple():
     for fkey, fval in result.fieldPairs:
       if pod.hasKey(fkey):
-        fromPodHook(pod[fkey], fval)
+        pods.fromPodHook(pod[fkey], fval)
   else:
     var index = 0
     for fval in result.fields:
       if pod.list.len > index:
-        fromPodHook(pod.list[index], fval)
+        pods.fromPodHook(pod.list[index], fval)
       inc index
    
 proc fromPod*(pod: var Pod, typeof: typedesc): typeof =
-  fromPodHook(pod, result)
+  pods.fromPodHook(pod, result)
 
 #-----------------------------------------------------------------------------------------------------------------------------------------
 # @api pod object to pod
 #-----------------------------------------------------------------------------------------------------------------------------------------
-proc toPodHook*[T: openArray](pod: var Pod, obj: T)
-proc toPodHook*[T: bool](pod: var Pod, obj: T)
-proc toPodHook*[T: string](pod: var Pod, obj: T)
-proc toPodHook*[T: SomeFloat](pod: var Pod, obj: T)
-proc toPodHook*[T: SomeInteger](pod: var Pod, obj: T)
-proc toPodHook*[T: object | ref object](pod: var Pod, obj: T)
-proc toPodHook*[T: tuple](pod: var Pod, obj: T)
-proc toPodHook*[K,V](pod: var Pod, obj: Table[K,V])
-proc toPodHook*[K,V](pod: var Pod, obj: OrderedTable[K,V])
+proc toPodHook*[T: openArray](api; pod: var Pod, obj: T)
+proc toPodHook*[T: bool](api; pod: var Pod, obj: T)
+proc toPodHook*[T: string](api; pod: var Pod, obj: T)
+proc toPodHook*[T: SomeFloat](api; pod: var Pod, obj: T)
+proc toPodHook*[T: SomeInteger](api; pod: var Pod, obj: T)
+proc toPodHook*[T: object | ref object](api; pod: var Pod, obj: T)
+proc toPodHook*[T: tuple](api; pod: var Pod, obj: T)
+proc toPodHook*[K,V](api; pod: var Pod, obj: Table[K,V])
+proc toPodHook*[K,V](api; pod: var Pod, obj: OrderedTable[K,V])
 
 
-proc toPodHook*[K,V](pod: var Pod, obj: OrderedTable[K,V]) =
+proc toPodHook*[K,V](api; pod: var Pod, obj: OrderedTable[K,V]) =
   pod = initPodObject()
   pod.isTable = true
   for k,v in obj.pairs:
-    toPodHook(pod[k], v)
+    pods.toPodHook(pod[k], v)
 
 
-proc toPodHook*[K,V](pod: var Pod, obj: Table[K,V]) =
+proc toPodHook*[K,V](api; pod: var Pod, obj: Table[K,V]) =
   pod = initPodObject()
   pod.isTable = true
   for k,v in obj.pairs:
-    toPodHook(pod[k], v)
+    pods.toPodHook(pod[k], v)
 
 
-proc toPodHook*[T: openArray](pod: var Pod, obj: T) =
+proc toPodHook*[T: openArray](api; pod: var Pod, obj: T) =
   pod = initPodArray()
   for item in obj.items:
     var pitem: Pod
-    toPodHook(pitem, item)
+    pods.toPodHook(pitem, item)
     pod.list.add(pitem)
 
 
-proc toPodHook*[T: bool](pod: var Pod, obj: T) =
+proc toPodHook*[T: bool](api; pod: var Pod, obj: T) =
   pod = initPod(obj)
 
 
-proc toPodHook*[T: string](pod: var Pod, obj: T) =
+proc toPodHook*[T: string](api; pod: var Pod, obj: T) =
   pod = initPod(obj)
 
 
-proc toPodHook*[T: SomeFloat](pod: var Pod, obj: T) =
+proc toPodHook*[T: SomeFloat](api; pod: var Pod, obj: T) =
   pod = initPod((float)obj)
 
 
-proc toPodHook*[T: SomeInteger](pod: var Pod, obj: T) =
+proc toPodHook*[T: SomeInteger](api; pod: var Pod, obj: T) =
   pod = initPod((int)obj)
 
 
-proc toPodHook*[T: object | ref object](pod: var Pod, obj: T) =
+proc toPodHook*[T: object | ref object](api; pod: var Pod, obj: T) =
   pod = initPodObject()
   for k, v in obj.fieldPairs:
-    toPodHook(pod[k], v)
+    pods.toPodHook(pod[k], v)
 
 
-proc toPodHook*[T: tuple](pod: var Pod, obj: T) =
+proc toPodHook*[T: tuple](api; pod: var Pod, obj: T) =
   if T.isNamedTuple():
     pod = initPodObject()
     for fkey, fval in obj.fieldPairs:
-      toPodHook(pod[fkey], fval)
+      pods.toPodHook(pod[fkey], fval)
   else:
     pod = initPodArray()
     for fval in obj.fields:
       var item: Pod
-      toPodHook(item, fval)
+      pods.toPodHook(item, fval)
       pod.add(item)
 
 
 proc toPod*[T](obj: T): Pod =
-  toPodHook(result, obj)
+  pods.toPodHook(result, obj)
 
 #---------------------------------------------------------------------------------------------
 # @api pod object serialization
