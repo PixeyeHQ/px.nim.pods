@@ -1,0 +1,22 @@
+# Package
+
+version       = "2023.7.0"
+author        = "Dmitry @Pixeye Mitrofanov"
+description   = "Text format for serialization and config files"
+license       = "MIT"
+srcDir        = "src"
+
+
+# Dependencies
+requires "nim >= 1.9.3"
+
+var ex = "ex"
+var debug = "debug"
+
+proc run(name, releaseMode="danger") =
+  exec "nim cpp --mm:orc -d:stacktrace:off -d:useMalloc -d:" & releaseMode & " -o=bin/examples/ -r examples/" & name & ".nim"
+
+task ex_pods, ex:
+  run "ex_pods"
+task ex_pods_d, debug:
+  run "ex_pods", "debug"
