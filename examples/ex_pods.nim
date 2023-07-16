@@ -74,9 +74,9 @@ pod["Cuthbert"] = pods.toPod(unit2)
 pod["Roland"]   = pods.toPod(unit3)
 
 
-pods.toPodFile(densePath,   pod, PodStyle.Dense)
-pods.toPodFile(compactPath, pod, PodStyle.Compact)
-pods.toPodFile(sparsePath,  pod, PodStyle.Sparse)
+pods.toPodFile(densePath,   pod, PxPods.PodStyle.Dense)
+pods.toPodFile(compactPath, pod, PxPods.PodStyle.Compact)
+pods.toPodFile(sparsePath,  pod, PxPods.PodStyle.Sparse)
 
 
 # Compact: save pod to file without spaces in one line.
