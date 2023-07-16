@@ -1346,22 +1346,22 @@ proc fromPodStringHook*(p: var PodReader, pod: var Pod) =
   proc parseArray(p: var PodReader, pod: var Pod) =
     pod = initPodArray()
     while p.canAdvance():
-      var item: Pod
-      p.fromPodStringHook(item)
-      pod.add(item)
+      p.skipWhitespace()
       case p.peek():
+        of ArrayEndDelimeter:
+          break
         of ArraySeparator:
           p.skip()
         else:
-          break
+          var item: Pod
+          p.fromPodStringHook(item)
+          pod.add(item)
+
 
   proc parseArrayBody(p: var PodReader, pod: var Pod) =
     p.skip()
     p.skipWhitespace()
-    if p.peek() in StringDelimeters:
-      p.skip()
-      p.parseTable(pod)
-    elif p.peek() in ArrayBeginDelimeter:
+    if p.peek() in ArrayBeginDelimeter:
       p.skip()
       p.parseTable(pod)
     else:
@@ -1447,7 +1447,7 @@ proc fromPodStringHook*(p: var PodReader, pod: var Pod) =
         else:
           fatal(debug_tag, "Wrong null")
       else:
-          #fatal(debug_tag, "No value")
+          fatal(debug_tag, "Can't parse value")
           break
     p.skip()
   p.skipWhitespace()
