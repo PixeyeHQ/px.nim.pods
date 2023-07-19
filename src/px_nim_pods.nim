@@ -9,6 +9,7 @@ export px_pods.valPtr
 export px_pods.val
 export px_pods.fromPod
 export px_pods.PodsAPI
+export px_pods.PodDigits
 export px_pods.toPodHook
 export px_pods.fromPodHook
 export px_pods.pods
