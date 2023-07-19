@@ -4,7 +4,8 @@ You can read about PODS here: https://github.com/PixeyeHQ/pods
 
 ## How to use it?
 I encourage you to look in the example folder to find some examples of how to work with PODS in nim.
-Use `pods` object hook to get API commands. `pods` is used as API hook. Use `PxPods` to get access to module types.
+Use `pods` object hook to get API commands. `pods` is used as API hook. 
+Use `PxPods` to get access to module types. (Not strictly necessary, but I like using namespaces :))
 ```nim
 type Vector3 = object
   x: int
