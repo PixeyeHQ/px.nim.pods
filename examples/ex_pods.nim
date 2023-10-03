@@ -71,14 +71,6 @@ var pod = pods.newPodObject()
 pod["Alain"]    = pods.toPod(unit1)
 pod["Cuthbert"] = pods.toPod(unit2)
 pod["Roland"]   = pods.toPod(unit3)
-let time = cpuTime()
-for i in 0..1000:
-  var poda = pods.newPodObject()
-  poda["Alain"]    = pods.toPod(unit1)
-  poda["Cuthbert"] = pods.toPod(unit2)
-  poda["Roland"]   = pods.toPod(unit3)
-echo "Time taken: ", cpuTime() - time, " sec"
-
 
 pods.toPodFile(densePath,   pod, PxPods.PodStyle.Dense)
 pods.toPodFile(compactPath, pod, PxPods.PodStyle.Compact)
