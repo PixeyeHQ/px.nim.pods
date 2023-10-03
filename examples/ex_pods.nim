@@ -67,23 +67,23 @@ let path = os.getAppDir()
 let densePath = &"{path}/dense.pods"
 let sparsePath = &"{path}/sparse.pods"
 let compactPath = &"{path}/compact.pods"
-var pod = pods.newPodObject()
-pod["Alain"]    = pods.toPod(unit1)
-pod["Cuthbert"] = pods.toPod(unit2)
-pod["Roland"]   = pods.toPod(unit3)
+var pod = px_pods.newPodObject()
+pod["Alain"]    = px_pods.toPod(unit1)
+pod["Cuthbert"] = px_pods.toPod(unit2)
+pod["Roland"]   = px_pods.toPod(unit3)
 
-pods.toPodFile(densePath,   pod, PxPods.PodStyle.Dense)
-pods.toPodFile(compactPath, pod, PxPods.PodStyle.Compact)
-pods.toPodFile(sparsePath,  pod, PxPods.PodStyle.Sparse)
+px_pods.toPodFile(densePath,   pod, PxPods.PodStyle.Dense)
+px_pods.toPodFile(compactPath, pod, PxPods.PodStyle.Compact)
+px_pods.toPodFile(sparsePath,  pod, PxPods.PodStyle.Sparse)
 
 
 # Compact: save pod to file without spaces in one line.
 # Dense:   save pod to file in a verbose tree format. Usually used for configs.
 # Sparse:  save pod to file in a json like tree format. Sparse also enables pretty formatting for variables. In future this will be optional.
-var podLoaded   = pods.fromPodFile(compactPath)
-var unit1Loaded = pods.fromPod(podLoaded["Alain"], UnitObj)
-var unit2Loaded = pods.fromPod(podLoaded["Cuthbert"], UnitObj)
-var unit3Loaded = pods.fromPod(podLoaded["Roland"], UnitObj)
+var podLoaded   = px_pods.fromPodFile(compactPath)
+var unit1Loaded = px_pods.fromPod(podLoaded["Alain"], UnitObj)
+var unit2Loaded = px_pods.fromPod(podLoaded["Cuthbert"], UnitObj)
+var unit3Loaded = px_pods.fromPod(podLoaded["Roland"], UnitObj)
 
 echo unit1Loaded
 echo unit2Loaded
