@@ -22,32 +22,32 @@ export px_pods.getIO
 using api: PodsAPI
 
 
-proc initPod*(api; arg: int, flags: varargs[int]): Pod =
-  px_pods.initPod(arg, flags)
+proc newPod*(api; arg: int, flags: varargs[int]): Pod =
+  px_pods.newPod(arg, flags)
 
 
-proc initPod*(api; arg: float, flags: varargs[int]): Pod =
-  px_pods.initPod(arg, flags)
+proc newPod*(api; arg: float, flags: varargs[int]): Pod =
+  px_pods.newPod(arg, flags)
 
 
-proc initPod*(api; arg: string, flags: varargs[int]): Pod =
-  px_pods.initPod(arg, flags)
+proc newPod*(api; arg: string, flags: varargs[int]): Pod =
+  px_pods.newPod(arg, flags)
 
 
-proc initPod*(api; arg: bool, flags: varargs[int]): Pod =
-  px_pods.initPod(arg, flags)
+proc newPod*(api; arg: bool, flags: varargs[int]): Pod =
+  px_pods.newPod(arg, flags)
 
 
-proc initPod*(api; arg: pointer, flags: varargs[int]): Pod =
-  px_pods.initPod(arg, flags)
+proc newPod*(api; arg: pointer, flags: varargs[int]): Pod =
+  px_pods.newPod(arg, flags)
 
 
-proc initPodArray*(api; flags: varargs[int]): Pod =
-  px_pods.initPodArray(flags)
+proc newPodArray*(api; flags: varargs[int]): Pod =
+  px_pods.newPodArray(flags)
 
 
-proc initPodObject*(api; flags: varargs[int]): Pod =
-  px_pods.initPodObject(flags)
+proc newPodObject*(api; flags: varargs[int]): Pod =
+  px_pods.newPodObject(flags)
 
 
 proc fromPodFile*(api; filePath: string): Pod =

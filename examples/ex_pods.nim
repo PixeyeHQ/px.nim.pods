@@ -5,6 +5,7 @@ import std/strutils
 import std/strformat
 import std/tables
 import std/os
+import std/times
 import px_nim_pods
 
 
@@ -66,12 +67,17 @@ let path = os.getAppDir()
 let densePath = &"{path}/dense.pods"
 let sparsePath = &"{path}/sparse.pods"
 let compactPath = &"{path}/compact.pods"
-
-
-var pod = pods.initPodObject()
+var pod = pods.newPodObject()
 pod["Alain"]    = pods.toPod(unit1)
 pod["Cuthbert"] = pods.toPod(unit2)
 pod["Roland"]   = pods.toPod(unit3)
+let time = cpuTime()
+for i in 0..1000:
+  var poda = pods.newPodObject()
+  poda["Alain"]    = pods.toPod(unit1)
+  poda["Cuthbert"] = pods.toPod(unit2)
+  poda["Roland"]   = pods.toPod(unit3)
+echo "Time taken: ", cpuTime() - time, " sec"
 
 
 pods.toPodFile(densePath,   pod, PxPods.PodStyle.Dense)
@@ -87,8 +93,7 @@ var unit1Loaded = pods.fromPod(podLoaded["Alain"], UnitObj)
 var unit2Loaded = pods.fromPod(podLoaded["Cuthbert"], UnitObj)
 var unit3Loaded = pods.fromPod(podLoaded["Roland"], UnitObj)
 
-
-echo unit1Loaded
-echo unit2Loaded
-echo unit3Loaded
+# echo unit1Loaded
+# echo unit2Loaded
+# echo unit3Loaded
 
