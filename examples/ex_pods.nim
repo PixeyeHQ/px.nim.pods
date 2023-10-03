@@ -93,7 +93,7 @@ var unit1Loaded = pods.fromPod(podLoaded["Alain"], UnitObj)
 var unit2Loaded = pods.fromPod(podLoaded["Cuthbert"], UnitObj)
 var unit3Loaded = pods.fromPod(podLoaded["Roland"], UnitObj)
 
-# echo unit1Loaded
-# echo unit2Loaded
-# echo unit3Loaded
+echo unit1Loaded
+echo unit2Loaded
+echo unit3Loaded
 
