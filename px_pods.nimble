@@ -1,6 +1,6 @@
 # Package
 
-version       = "2023.10.2"
+version       = "2023.10.3"
 author        = "Dmitry @Pixeye Mitrofanov"
 description   = "Text format for serialization and config files"
 license       = "MIT"

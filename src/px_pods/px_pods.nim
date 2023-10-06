@@ -1,32 +1,37 @@
 #------------------------------------------------------------------------------------------
 # @api pod define
 #------------------------------------------------------------------------------------------
-import std/[os,sets,tables,macros,unicode,strutils,strformat,typetraits]
+import std/os
+import std/sets
+import std/tables
+import std/macros
+import std/unicode
+import std/strutils
+import std/strformat
+import std/typetraits
 import px_pods_d
 
 
-const 
-  EndOfLine                 = {'\l', '\r'}
-  CommentsOperator          = {'#'}
-  SomeWhitespace            = {' ', '\t', '\v', '\r', '\l', '\f'}
-  AssignmentOperators       = {'=', ':'}
-  StringDelimeters          = {'\'', '"'}
-  ObjectBeginDelimeters     = {'.', '('}
-  ObjectEndDelimeters       = {';', ')'}
-  ArrayBeginDelimeter       = {'['}
-  ArraySeparator            = {','}
-  ArrayEndDelimeter         = {']'}
-  PodDigits*                = {'0'..'9', '-'}
-  DebugTag                 = "POD.Parse"
+const EndOfLine                 = {'\l', '\r'}
+const CommentsOperator          = {'#'}
+const SomeWhitespace            = {' ', '\t', '\v', '\r', '\l', '\f'}
+const AssignmentOperators       = {'=', ':'}
+const StringDelimeters          = {'\'', '"'}
+const ObjectBeginDelimeters     = {'.', '('}
+const ObjectEndDelimeters       = {';', ')'}
+const ArrayBeginDelimeter       = {'['}
+const ArraySeparator            = {','}
+const ArrayEndDelimeter         = {']'}
+const PodDigits*                = {'0'..'9', '-'}
+const debug_tag                 = "POD.Parse"
 
 
 proc toPodStringSparseHook(p: var PodWriter, pod: var Pod)
 proc toPodStringDenseHook(p: var PodWriter, pod: var Pod)
 
 
-type 
-  API_Obj  = object
-  PodsAPI* = distinct API_Obj
+type API_Obj  = object
+type PodsAPI* = distinct API_Obj
 
 
 using api: PodsAPI
@@ -38,6 +43,9 @@ var
 
 
 pods_io.style = PodStyle.Compact
+
+
+
 
 
 #------------------------------------------------------------------------------------------
@@ -105,7 +113,7 @@ template fatal*(tag, message: string) =
   when defined debug:
     block:
       var msg {.inject.} = message
-      var resultMessage = &"[{DebugTag}] {msg}"
+      var resultMessage = &"[{debug_tag}] {msg}"
       if pods_io.debugProc != nil:
         pods_io.debugProc(resultMessage)
       else:
@@ -275,7 +283,7 @@ proc skipSymbol*(p: var PodReader, symbols: set[char]) =
     p.skip()
     return
   else:
-    fatal(DebugTag, "Invalid symbol.")
+    fatal(debug_tag, "Invalid symbol.")
 
 
 proc skipSymbol*(p: var PodReader, symbol: char) =
@@ -284,7 +292,7 @@ proc skipSymbol*(p: var PodReader, symbol: char) =
     p.skip()
     return
   else:
-    fatal(DebugTag, "Invalid symbol.")
+    fatal(debug_tag, "Invalid symbol.")
 
 
 proc parseDigit*(p: var PodReader): int =
@@ -308,7 +316,7 @@ proc parseDigit*(p: var PodReader): int =
         of StringDelimeters:
           break
         else:
-          fatal(DebugTag, "Invalid value")
+          fatal(debug_tag, "Invalid value")
   case p.peek():
     of '-':
       p.skip()
@@ -317,7 +325,7 @@ proc parseDigit*(p: var PodReader): int =
     of digits:
       parseNumber()
     else:
-      fatal(DebugTag, "Invalid value")
+      fatal(debug_tag, "Invalid value")
 
 
 proc parseTokenString*(p: var PodReader) =
@@ -412,28 +420,28 @@ proc parseTokenObject*(p: var PodReader) =
 
 proc eatObjBegin*(p: var PodReader) =
   if p.peek() notin ObjectBeginDelimeters:
-    fatal(DebugTag, "No object begining")
+    fatal(debug_tag, "No object begining")
   else:
     p.skip()
 
 
 proc eatArrayBegin*(p: var PodReader) =
   if p.peek() notin ArrayBeginDelimeter:
-    fatal(DebugTag, "No array begining")
+    fatal(debug_tag, "No array begining")
   else:
     p.skip()
 
 
 proc eatArrayEnd*(p: var PodReader) =
   if p.peek() notin ArrayEndDelimeter:
-    fatal(DebugTag, "No array ending")
+    fatal(debug_tag, "No array ending")
   else:
     p.skip()
 
 
 proc eatObjEnd*(p: var PodReader) =
   if p.peek() notin ObjectEndDelimeters:
-    fatal(DebugTag, "No object ending")
+    fatal(debug_tag, "No object ending")
   else:
     p.skip()
 
@@ -470,37 +478,37 @@ proc setFlags*(self: var Pod, flags: varargs[int]) =
 #---------------------------------------------------------------------------------------------
 # @api pod object constructors
 #---------------------------------------------------------------------------------------------
-proc newPod*(arg: int, flags: varargs[int]): Pod =
+proc initPod*(arg: int, flags: varargs[int]): Pod =
   result = Pod(kind: PInt, vint: arg)
   setFlags(result, flags)
 
 
-proc newPod*(arg: float, flags: varargs[int]): Pod =
+proc initPod*(arg: float, flags: varargs[int]): Pod =
   result = Pod(kind: PFloat, vfloat: arg)
   setFlags(result, flags)
 
 
-proc newPod*(arg: string, flags: varargs[int]): Pod =
+proc initPod*(arg: string, flags: varargs[int]): Pod =
   result = Pod(kind: PString, vstring: arg)
   setFlags(result, flags)
 
 
-proc newPod*(arg: bool, flags: varargs[int]): Pod =
+proc initPod*(arg: bool, flags: varargs[int]): Pod =
   result = Pod(kind: PBool, vbool: arg)
   setFlags(result, flags)
 
 
-proc newPod*(arg: pointer, flags: varargs[int]): Pod =
+proc initPod*(arg: pointer, flags: varargs[int]): Pod =
   result = Pod(kind: PPointer, vpointer: arg)
   setFlags(result, flags)
 
 
-proc newPodArray*(flags: varargs[int]): Pod =
+proc initPodArray*(flags: varargs[int]): Pod =
   result = Pod(kind: PArray)
   setFlags(result, flags)
 
 
-proc newPodObject*(flags: varargs[int]): Pod =
+proc initPodObject*(flags: varargs[int]): Pod =
   result = Pod(kind: PObject)
   setFlags(result, flags)
 
@@ -544,7 +552,7 @@ proc hasKey*(self: ptr Pod, key: string): bool =
 
 proc getChild*(self: var Pod, key: string): var Pod =
   if not self.fields.hasKey(key):
-    self.fields[key] = newPodObject()
+    self.fields[key] = initPodObject()
   self.fields[key]
 
 
@@ -556,12 +564,12 @@ proc `[]`*(self: var Pod, key: string): var Pod =
       for index in 0..keys.high:
         let nkey = keys[index]
         if not nvar.fields.hasKey(nkey):
-          nvar.fields[nkey] = newPodObject()
+          nvar.fields[nkey] = initPodObject()
           nvar.fields[nkey].flag = nvar.flag
         nvar = nvar.fields[nkey].addr
       return nvar[]
   if not self.fields.hasKey(key):
-    self.fields[key] = newPodObject()
+    self.fields[key] = initPodObject()
     self.fields[key].flag = self.flag
   self.fields[key]
 
@@ -578,7 +586,7 @@ proc `[]=`*(self: var Pod, key: string, val: var Pod) =
       for index in 0..keys.high:
         let nkey = keys[index]
         if not nvar.fields.hasKey(nkey):
-          nvar.fields[nkey] = newPodObject()
+          nvar.fields[nkey] = initPodObject()
           nvar.fields[nkey].flag = nvar.flag
         nvar = nvar.fields[nkey].addr
       nvar[] = val
@@ -594,7 +602,7 @@ proc `[]=`*(self: var Pod, key: string, val: Pod) =
       for index in 0..keys.high:
         let nkey = keys[index]
         if not nvar.fields.hasKey(nkey):
-          nvar.fields[nkey] = newPodObject()
+          nvar.fields[nkey] = initPodObject()
           nvar.fields[nkey].flag = nvar.flag
         nvar = nvar.fields[nkey].addr
       nvar[] = val
@@ -744,21 +752,21 @@ proc toPodHook*[K,V](api; pod: var Pod, obj: OrderedTable[K,V])
 
 
 proc toPodHook*[K,V](api; pod: var Pod, obj: OrderedTable[K,V]) =
-  pod = newPodObject()
+  pod = initPodObject()
   pod.isTable = true
   for k,v in obj.pairs:
     pods.toPodHook(pod[k], v)
 
 
 proc toPodHook*[K,V](api; pod: var Pod, obj: Table[K,V]) =
-  pod = newPodObject()
+  pod = initPodObject()
   pod.isTable = true
   for k,v in obj.pairs:
     pods.toPodHook(pod[k], v)
 
 
 proc toPodHook*[T: openArray](api; pod: var Pod, obj: T) =
-  pod = newPodArray()
+  pod = initPodArray()
   for item in obj.items:
     var pitem: Pod
     pods.toPodHook(pitem, item)
@@ -766,34 +774,34 @@ proc toPodHook*[T: openArray](api; pod: var Pod, obj: T) =
 
 
 proc toPodHook*[T: bool](api; pod: var Pod, obj: T) =
-  pod = newPod(obj)
+  pod = initPod(obj)
 
 
 proc toPodHook*[T: string](api; pod: var Pod, obj: T) =
-  pod = newPod(obj)
+  pod = initPod(obj)
 
 
 proc toPodHook*[T: SomeFloat](api; pod: var Pod, obj: T) =
-  pod = newPod((float)obj)
+  pod = initPod((float)obj)
 
 
 proc toPodHook*[T: SomeInteger](api; pod: var Pod, obj: T) =
-  pod = newPod((int)obj)
+  pod = initPod((int)obj)
 
 
 proc toPodHook*[T: object | ref object](api; pod: var Pod, obj: T) =
-  pod = newPodObject()
+  pod = initPodObject()
   for k, v in obj.fieldPairs:
     pods.toPodHook(pod[k], v)
 
 
 proc toPodHook*[T: tuple](api; pod: var Pod, obj: T) =
   if T.isNamedTuple():
-    pod = newPodObject()
+    pod = initPodObject()
     for fkey, fval in obj.fieldPairs:
       pods.toPodHook(pod[fkey], fval)
   else:
-    pod = newPodArray()
+    pod = initPodArray()
     for fval in obj.fields:
       var item: Pod
       pods.toPodHook(item, fval)
@@ -1291,18 +1299,18 @@ proc fromPodStringHook*(p: var PodReader, pod: var Pod) =
   proc parseString(p: var PodReader, pod: var Pod) =
     p.skip()
     p.parseTokenString()
-    pod = newPod(p.token)
+    pod = initPod(p.token)
     p.skip()
 
   proc parseDigit(p: var PodReader, pod: var Pod) =
     p.parseTokenValue()
     try:
-      pod = newPod(parseInt(p.token))
+      pod = initPod(parseInt(p.token))
     except ValueError:
       try:
-        pod = newPod(parseFloat(p.token))
+        pod = initPod(parseFloat(p.token))
       except ValueError:
-        fatal(DebugTag, "Invalid digit value")
+        fatal(debug_tag, "Invalid digit value")
 
   proc parseTableKey(p: var PodReader) =
     p.skipWhitespace()
@@ -1315,7 +1323,7 @@ proc fromPodStringHook*(p: var PodReader, pod: var Pod) =
     p.skipWhitespace()
   
   proc parseTable(p: var PodReader, pod: var Pod) =
-    pod = newPodObject()
+    pod = initPodObject()
     pod.isTable = true
     while p.canAdvance():
       p.parseTableKey()
@@ -1332,11 +1340,11 @@ proc fromPodStringHook*(p: var PodReader, pod: var Pod) =
         of ArrayEndDelimeter:
           break
         else:
-          fatal(DebugTag, "Invalid table assignment")
+          fatal(debug_tag, "Invalid table assignment")
     p.skip()
 
   proc parseArray(p: var PodReader, pod: var Pod) =
-    pod = newPodArray()
+    pod = initPodArray()
     while p.canAdvance():
       p.skipWhitespace()
       case p.peek():
@@ -1362,7 +1370,7 @@ proc fromPodStringHook*(p: var PodReader, pod: var Pod) =
     p.eatArrayEnd()
 
   proc parseObject(p: var PodReader, pod: var Pod) =
-    if pod.kind != PObject: pod = newPodObject()
+    if pod.kind != PObject: pod = initPodObject()
     p.skip()
     var assigns = 0
     while p.canAdvance():
@@ -1382,7 +1390,7 @@ proc fromPodStringHook*(p: var PodReader, pod: var Pod) =
           p.skipWhitespace()
         of ObjectEndDelimeters:
           if assigns == 0 and p.token.len > 0:
-            fatal(DebugTag, "Key without value")
+            fatal(debug_tag, "Key without value")
           break
         of ArraySeparator:
           p.skip()
@@ -1408,38 +1416,38 @@ proc fromPodStringHook*(p: var PodReader, pod: var Pod) =
         break
       of 'f':
         if p.peek(4) == 'e':
-          pod = newPod(false)
+          pod = initPod(false)
           p.skip(5)
           break
         else:
-          fatal(DebugTag, "Wrong boolean")
+          fatal(debug_tag, "Wrong boolean")
       of 't':
         if p.peek(3) == 'e':
-          pod = newPod(true)
+          pod = initPod(true)
           p.skip(4)
           break
         else:
-          fatal(DebugTag, "Wrong boolean")
+          fatal(debug_tag, "Wrong boolean")
       of 'o':
         if p.peek(1) == 'n':
-          pod = newPod(true)
+          pod = initPod(true)
           p.skip(2)
           break
         elif p.peek(2) == 'f':
-          pod = newPod(false)
+          pod = initPod(false)
           p.skip(3)
           break
         else:
-          fatal(DebugTag, "Wrong boolean")
+          fatal(debug_tag, "Wrong boolean")
       of 'n':
         if p.peek(3) == 'l':
-          pod = newPod(nil)
+          pod = initPod(nil)
           p.skip(4)
           break
         else:
-          fatal(DebugTag, "Wrong null")
+          fatal(debug_tag, "Wrong null")
       else:
-          fatal(DebugTag, "Can't parse value")
+          fatal(debug_tag, "Can't parse value")
           break
     p.skip()
   p.skipWhitespace()
@@ -1450,7 +1458,7 @@ proc fromPodString*(podSource: string): Pod =
   var srcref = podSource
   p.source = cast[ptr UncheckedArray[char]](srcref[0].addr)
   p.sourceLen = podSource.len
-  result      = newPodObject()
+  result      = initPodObject()
   p.fromPodStringHook(result)
 
 
@@ -1878,18 +1886,18 @@ proc fromPodStringHook*[T: SomeFloat](p: var PodReader, result: var T) =
   try:
     result = (T)parseFloat(p.token)
   except ValueError:
-    fatal(DebugTag, "Not a float")
+    fatal(debug_tag, "Not a float")
   p.skipWhiteSpace()
 
 
 proc fromPodStringHook*(p: var PodReader, result: var string) =
   p.skipWhiteSpace()
   if not p.match(StringDelimeters):
-    fatal(DebugTag, "Not a string")
+    fatal(debug_tag, "Not a string")
   p.parseTokenString()
   result = p.token
   if not p.match(StringDelimeters):
-    fatal(DebugTag, "String is not closed")
+    fatal(debug_tag, "String is not closed")
   p.skipWhiteSpace()
 
 
