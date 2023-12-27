@@ -503,6 +503,10 @@ proc initPod*(arg: pointer, flags: varargs[int]): Pod =
   setFlags(result, flags)
 
 
+proc initPod*[T](arg: T, flags: varargs[int]): Pod =
+  initPod(cast[pointer](arg), flags)
+
+
 proc initPodArray*(flags: varargs[int]): Pod =
   result = Pod(kind: PArray)
   setFlags(result, flags)
@@ -647,6 +651,10 @@ proc val*(self: var Pod, typeof: typedesc[SomeFloat]): typeof =
 
 
 proc val*[T](self: var Pod, typeof: typedesc[T]): typeof =
+  result = cast[T](self.vpointer)
+
+
+proc val*[T](self: Pod, typeof: typedesc[T]): typeof =
   result = cast[T](self.vpointer)
 
 
