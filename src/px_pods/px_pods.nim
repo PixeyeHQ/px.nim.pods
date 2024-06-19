@@ -369,9 +369,12 @@ proc parseTokenKey*(p: var PodReader) =
 proc parseTokenValue*(p: var PodReader) =
   var tokenLen = 0
   var tokenBeginIndex = p.charIndex
+  p.isInt = true
   while p.canAdvance():
     let c = p.peek()
     case c:
+      of '.':
+         p.isInt = false
       of SomeWhitespace:
         break
       of ObjectEndDelimeters:
@@ -1303,6 +1306,7 @@ proc merge*(parent: var Pod, child: Pod) =
             parent[k] = child.fields[k]
 
 
+
 proc fromPodStringHook*(p: var PodReader, pod: var Pod) =
   proc parseString(p: var PodReader, pod: var Pod) =
     p.skip()
@@ -1312,9 +1316,9 @@ proc fromPodStringHook*(p: var PodReader, pod: var Pod) =
 
   proc parseDigit(p: var PodReader, pod: var Pod) =
     p.parseTokenValue()
-    try:
+    if p.isInt:
       pod = initPod(parseInt(p.token))
-    except ValueError:
+    else:
       try:
         pod = initPod(parseFloat(p.token))
       except ValueError:

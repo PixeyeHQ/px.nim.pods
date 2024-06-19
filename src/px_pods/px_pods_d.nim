@@ -53,6 +53,7 @@ type PodReader* = object of RootObj
   charIndex*: int
   token*:     string
   source*:    ptr UncheckedArray[char]
+  isInt*: bool
   sourceLen*: int
 
 
