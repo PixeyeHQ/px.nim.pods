@@ -375,6 +375,7 @@ proc parseTokenValue*(p: var PodReader) =
     case c:
       of '.':
          p.isInt = false
+         inc tokenLen
       of SomeWhitespace:
         break
       of ObjectEndDelimeters:
