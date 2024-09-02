@@ -12,10 +12,12 @@ type Vector3 = object
   y: int
   z: int
 
+let path = os.getAppDir()
+let sparsePath = &"{path}/sparse.pods" # your file name
 var position = Vector3(x:10,y:10,z:1)
 var pod      = pods.initPodObject()
 pod["position"] = pods.toPod(position)
-pods.toPodFile(<your_path>.pods, pod, PxPods.PodStyle.Sparse)
+pods.toPodFile(sparsePath, pod, PxPods.PodStyle.Sparse)
 ```
 ## Usage / Contribution
 The code may contain bugs and it lacks proper debugging and tests. It's still for personal use and may be rough on edges.
