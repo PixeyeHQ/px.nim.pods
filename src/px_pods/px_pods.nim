@@ -757,7 +757,8 @@ proc toPodHook*[T: bool](api; pod: var Pod, obj: T)
 proc toPodHook*[T: string](api; pod: var Pod, obj: T)
 proc toPodHook*[T: SomeFloat](api; pod: var Pod, obj: T)
 proc toPodHook*[T: SomeInteger](api; pod: var Pod, obj: T)
-proc toPodHook*[T: object | ref object](api; pod: var Pod, obj: T)
+proc toPodHook*[T: object](api; pod: var Pod, obj: T)
+proc toPodHook*[T: ref object](api; pod: var Pod, obj: T)
 proc toPodHook*[T: tuple](api; pod: var Pod, obj: T)
 proc toPodHook*[K,V](api; pod: var Pod, obj: Table[K,V])
 proc toPodHook*[K,V](api; pod: var Pod, obj: OrderedTable[K,V])
@@ -801,9 +802,14 @@ proc toPodHook*[T: SomeInteger](api; pod: var Pod, obj: T) =
   pod = initPod((int)obj)
 
 
-proc toPodHook*[T: object | ref object](api; pod: var Pod, obj: T) =
+proc toPodHook*[T: object](api; pod: var Pod, obj: T) =
   pod = initPodObject()
   for k, v in obj.fieldPairs:
+    pods.toPodHook(pod[k], v)
+
+proc toPodHook*[T: ref object](api; pod: var Pod, obj: T) =
+  pod = initPodObject()
+  for k, v in obj[].fieldPairs:
     pods.toPodHook(pod[k], v)
 
 
